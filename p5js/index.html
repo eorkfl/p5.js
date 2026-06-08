@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정우인 · p5.js 포트폴리오</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0c18;
+      --surface: #16132a;
+      --border: #2e2850;
+      --accent1: #c3556e;
+      --accent2: #8cdcff;
+      --accent3: #f59b3c;
+      --text: #e8e2f5;
+      --muted: #7a7099;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Nanum Gothic', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 12% 8%, rgba(255,255,230,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 15%, rgba(255,255,230,0.6) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 58% 5%, rgba(255,255,230,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 12%, rgba(255,255,230,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 22%, rgba(255,255,230,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 22% 28%, rgba(255,255,230,0.4) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 70% 30%, rgba(140,220,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 48% 35%, rgba(255,255,230,0.5) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 52px 24px 32px;
+    }
+
+    .header-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      border: 1px solid rgba(140,220,255,0.3);
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.1s;
+    }
+
+    h1 {
+      font-family: 'Gowun Batang', serif;
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      font-weight: 700;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.25s;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, var(--accent1), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.4s;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 24px auto 20px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.5s;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot.static  { background: var(--accent1); }
+    .dot.dynamic { background: var(--accent2); }
+
+    #projects {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px 56px;
+    }
+
+    .cell {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .cell:nth-child(1) { animation: fadeUp 0.6s ease forwards 0.55s; }
+    .cell:nth-child(2) { animation: fadeUp 0.6s ease forwards 0.7s; }
+    .cell:nth-child(3) { animation: fadeUp 0.6s ease forwards 0.85s; }
+    .cell:nth-child(4) { animation: fadeUp 0.6s ease forwards 1.0s; }
+
+    .cell:hover {
+      transform: translateY(-5px);
+      border-color: rgba(140,220,255,0.3);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(140,220,255,0.1);
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px; right: 10px;
+      z-index: 10;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+      pointer-events: none;
+    }
+
+    .badge.static {
+      background: rgba(195,85,110,0.2);
+      border: 1px solid rgba(195,85,110,0.5);
+      color: #e88aa0;
+    }
+
+    .badge.dynamic {
+      background: rgba(140,220,255,0.15);
+      border: 1px solid rgba(140,220,255,0.45);
+      color: var(--accent2);
+    }
+
+    .iframe-wrap {
+      position: relative;
+      width: 100%;
+      /* 세로형(400x600) 기본 */
+      aspect-ratio: 2 / 3;
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* 과제1만 가로형(600x400) */
+    #wrap1 {
+      aspect-ratio: 3 / 2;
+    }
+
+    .iframe-wrap iframe {
+      position: absolute;
+      border: none;
+      transform-origin: top left;
+    }
+
+    .meta {
+      padding: 11px 14px 13px;
+      border-top: 1px solid var(--border);
+    }
+
+    .meta-top {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
+    .meta-num   { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.12em; }
+    .meta-title { font-family: 'Gowun Batang', serif; font-size: 0.86rem; font-weight: 700; }
+    .meta-desc  { font-size: 0.7rem; color: var(--muted); line-height: 1.5; }
+
+    .hint { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .hint-tag {
+      font-size: 0.58rem;
+      padding: 2px 7px;
+      background: rgba(140,220,255,0.07);
+      border: 1px solid rgba(140,220,255,0.2);
+      border-radius: 4px;
+      color: rgba(140,220,255,0.7);
+    }
+
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 0 0 36px;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    footer span { color: var(--accent1); }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">p5.js Creative Coding</div>
+  <h1>정우인의 <span>작품 모음</span></h1>
+  <p class="subtitle">숭실대학교 아텍 · 2025</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot static"></div> 정적</div>
+  <div class="legend-item"><div class="dot dynamic"></div> 동적</div>
+</div>
+
+<main id="projects">
+
+  <!-- 과제1: 혜성 밤하늘 (정적) -->
+  <div class="cell">
+    <div class="badge static">정적</div>
+    <div class="iframe-wrap" id="wrap1">
+      <iframe id="f1" src="sample1/index.html"></iframe>
+    </div>
+    <div class="meta">
+      <div class="meta-top">
+        <span class="meta-num">01</span>
+        <span class="meta-title">혜성과 밤하늘</span>
+      </div>
+      <div class="meta-desc">노을빛 그라데이션 하늘과 혜성 꼬리</div>
+    </div>
+  </div>
+
+  <!-- 과제4: 낮밤 애니메이션 (동적) -->
+  <div class="cell">
+    <div class="badge dynamic">동적</div>
+    <div class="iframe-wrap" id="wrap4">
+      <iframe id="f4" src="sample4/index.html"></iframe>
+    </div>
+    <div class="meta">
+      <div class="meta-top">
+        <span class="meta-num">04</span>
+        <span class="meta-title">하루의 순환</span>
+      </div>
+      <div class="meta-desc">낮 → 노을 → 밤 자동 사이클 애니메이션</div>
+      <div class="hint">
+        <span class="hint-tag">자동 재생</span>
+        <span class="hint-tag">낮·밤 전환</span>
+        <span class="hint-tag">별·구름</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 과제2: 캐리커처 (정적) -->
+  <div class="cell">
+    <div class="badge static">정적</div>
+    <div class="iframe-wrap" id="wrap2">
+      <iframe id="f2" src="sample2/index.html"></iframe>
+    </div>
+    <div class="meta">
+      <div class="meta-top">
+        <span class="meta-num">02</span>
+        <span class="meta-title">자화상 캐리커처</span>
+      </div>
+      <div class="meta-desc">p5.js 도형으로 그린 자화상</div>
+    </div>
+  </div>
+
+  <!-- 과제3: 인터랙티브 캐리커처 (동적) -->
+  <div class="cell">
+    <div class="badge dynamic">동적</div>
+    <div class="iframe-wrap" id="wrap3">
+      <iframe id="f3" src="sample3/index.html"></iframe>
+    </div>
+    <div class="meta">
+      <div class="meta-top">
+        <span class="meta-num">03</span>
+        <span class="meta-title">인터랙티브 자화상</span>
+      </div>
+      <div class="meta-desc">키보드·마우스로 반응하는 캐리커처</div>
+      <div class="hint">
+        <span class="hint-tag">클릭: 울기</span>
+        <span class="hint-tag">스페이스: 머리색</span>
+        <span class="hint-tag">↑: 점프</span>
+        <span class="hint-tag">←→: 배경</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>made with <span>♥</span> &amp; p5.js · 정우인</footer>
+
+<script>
+  function scaleIframe(wrapId, iframeId, srcW, srcH) {
+    const wrap = document.getElementById(wrapId);
+    const iframe = document.getElementById(iframeId);
+    if (!wrap || !iframe) return;
+    const wW = wrap.clientWidth;
+    const wH = wrap.clientHeight;
+    const scale = Math.min(wW / srcW, wH / srcH);
+    iframe.style.width  = srcW + 'px';
+    iframe.style.height = srcH + 'px';
+    iframe.style.transform = `scale(${scale})`;
+    iframe.style.left = ((wW - srcW * scale) / 2) + 'px';
+    iframe.style.top  = ((wH - srcH * scale) / 2) + 'px';
+  }
+
+  function rescaleAll() {
+    scaleIframe('wrap1', 'f1', 600, 400);
+    scaleIframe('wrap2', 'f2', 400, 600);
+    scaleIframe('wrap3', 'f3', 400, 600);
+    scaleIframe('wrap4', 'f4', 400, 600);
+  }
+
+  window.addEventListener('load', rescaleAll);
+  window.addEventListener('resize', rescaleAll);
+</script>
+
+</body>
+</html>
