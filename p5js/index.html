@@ -106,7 +106,468 @@
       color: var(--muted);
     }
 
-    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; }<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정우인 · p5.js 포트폴리오</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Nanum Gothic', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: #0a0816;
+      color: #e8e2f5;
+    }
+
+    /* 배경 캔버스 */
+    #bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    header {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 52px 24px 28px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #8cdcff;
+      border: 1px solid rgba(140,220,255,0.3);
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      opacity: 0;
+      animation: up 0.6s ease forwards 0.1s;
+    }
+
+    h1 {
+      font-family: 'Gowun Batang', serif;
+      font-size: clamp(1.4rem, 4vw, 2.3rem);
+      font-weight: 700;
+      opacity: 0;
+      animation: up 0.7s ease forwards 0.25s;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, #c3556e, #f59b3c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .sub {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #7a7099;
+      opacity: 0;
+      animation: up 0.7s ease forwards 0.38s;
+    }
+
+    /* 정적/동적 범례 */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin: 22px auto 18px;
+      opacity: 0;
+      animation: up 0.6s ease forwards 0.48s;
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      color: #7a7099;
+    }
+
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+
+    /* 2x2 그리드 */
+    #grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 0 18px 52px;
+    }
+
+    .card {
+      border-radius: 13px;
+      overflow: hidden;
+      border: 1px solid #2a2545;
+      background: #131025;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .card:nth-child(1) { animation: up 0.6s ease forwards 0.52s; }
+    .card:nth-child(2) { animation: up 0.6s ease forwards 0.66s; }
+    .card:nth-child(3) { animation: up 0.6s ease forwards 0.80s; }
+    .card:nth-child(4) { animation: up 0.6s ease forwards 0.94s; }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(140,220,255,0.28);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.5);
+    }
+
+    /* 정적/동적 뱃지 */
+    .badge {
+      position: absolute;
+      top: 9px; right: 9px;
+      z-index: 5;
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+
+    .badge.s { background: rgba(195,85,110,0.18); border: 1px solid rgba(195,85,110,0.5); color: #e88aa0; }
+    .badge.d { background: rgba(140,220,255,0.12); border: 1px solid rgba(140,220,255,0.4); color: #8cdcff; }
+
+    /* iframe 영역 */
+    .frame {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .frame.land { aspect-ratio: 3 / 2; }   /* 과제1: 600x400 */
+    .frame.port { aspect-ratio: 2 / 3; }   /* 나머지: 400x600 */
+
+    .frame iframe {
+      position: absolute;
+      border: none;
+      transform-origin: top left;
+    }
+
+    /* 카드 하단 정보 */
+    .info {
+      padding: 10px 13px 12px;
+      border-top: 1px solid #2a2545;
+    }
+
+    .info-top {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      margin-bottom: 2px;
+    }
+
+    .num { font-size: 0.58rem; color: #7a7099; letter-spacing: 0.1em; }
+    .title { font-family: 'Gowun Batang', serif; font-size: 0.84rem; font-weight: 700; }
+    .desc { font-size: 0.68rem; color: #7a7099; line-height: 1.5; }
+
+    /* 인터랙션 힌트 태그 */
+    .hints { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 3px; }
+    .hint {
+      font-size: 0.57rem;
+      padding: 2px 6px;
+      background: rgba(140,220,255,0.06);
+      border: 1px solid rgba(140,220,255,0.18);
+      border-radius: 4px;
+      color: rgba(140,220,255,0.65);
+    }
+
+    @keyframes up {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 혜성 배경 캔버스 -->
+<canvas id="bg"></canvas>
+
+<header>
+  <div class="tag">P5.js_비주얼포트폴리오</div>
+  <h1>정우인의 <em>작품 모음</em></h1>
+  <p class="sub">숭실대학교 · 2026</p>
+</header>
+
+<div class="legend">
+  <span><div class="dot" style="background:#c3556e"></div> 정적</span>
+  <span><div class="dot" style="background:#8cdcff"></div> 동적</span>
+</div>
+
+<main id="grid">
+
+  <!-- 과제1 -->
+  <div class="card">
+    <div class="badge s">정적</div>
+    <div class="frame land" id="w1">
+      <iframe id="f1" src="sample1/index.html"></iframe>
+    </div>
+    <div class="info">
+      <div class="info-top">
+        <span class="num">01</span>
+        <span class="title">혜성과 밤하늘</span>
+      </div>
+      <div class="desc">노을빛 그라데이션 하늘과 혜성 꼬리</div>
+    </div>
+  </div>
+
+  <!-- 과제4 -->
+  <div class="card">
+    <div class="badge d">동적</div>
+    <div class="frame port" id="w4">
+      <iframe id="f4" src="sample4/index.html"></iframe>
+    </div>
+    <div class="info">
+      <div class="info-top">
+        <span class="num">04</span>
+        <span class="title">하루의 순환</span>
+      </div>
+      <div class="desc">낮 → 노을 → 밤 자동 사이클 애니메이션</div>
+      <div class="hints">
+        <span class="hint">자동 재생</span>
+        <span class="hint">낮·밤 전환</span>
+        <span class="hint">별·구름</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 과제2 -->
+  <div class="card">
+    <div class="badge s">정적</div>
+    <div class="frame port" id="w2">
+      <iframe id="f2" src="sample2/index.html"></iframe>
+    </div>
+    <div class="info">
+      <div class="info-top">
+        <span class="num">02</span>
+        <span class="title">자화상 캐리커처</span>
+      </div>
+      <div class="desc">p5.js 도형으로 그린 자화상</div>
+    </div>
+  </div>
+
+  <!-- 과제3 -->
+  <div class="card">
+    <div class="badge d">동적</div>
+    <div class="frame port" id="w3">
+      <iframe id="f3" src="sample3/index.html"></iframe>
+    </div>
+    <div class="info">
+      <div class="info-top">
+        <span class="num">03</span>
+        <span class="title">인터랙티브 자화상</span>
+      </div>
+      <div class="desc">키보드·마우스로 반응하는 캐리커처</div>
+      <div class="hints">
+        <span class="hint">클릭: 울기</span>
+        <span class="hint">스페이스: 머리색</span>
+        <span class="hint">↑: 점프</span>
+        <span class="hint">←→: 배경</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+
+
+<script>
+  // iframe 크기 맞추기
+  function fit(wrapId, frameId, w, h) {
+    let wrap = document.getElementById(wrapId);
+    let frame = document.getElementById(frameId);
+    if (!wrap || !frame) return;
+    let sc = Math.min(wrap.clientWidth / w, wrap.clientHeight / h);
+    frame.style.width  = w + 'px';
+    frame.style.height = h + 'px';
+    frame.style.transform = `scale(${sc})`;
+    frame.style.left = ((wrap.clientWidth  - w * sc) / 2) + 'px';
+    frame.style.top  = ((wrap.clientHeight - h * sc) / 2) + 'px';
+  }
+
+  function fitAll() {
+    fit('w1','f1', 600, 400);
+    fit('w2','f2', 400, 600);
+    fit('w3','f3', 400, 600);
+    fit('w4','f4', 400, 600);
+  }
+
+  window.addEventListener('load', fitAll);
+  window.addEventListener('resize', fitAll);
+
+  // 혜성 배경 애니메이션
+  const cv = document.getElementById('bg');
+  const ctx = cv.getContext('2d');
+
+  // 별 데이터
+  let stars = [];
+  // 혜성 데이터
+  let comets = [];
+
+  function resize() {
+    cv.width  = window.innerWidth;
+    cv.height = window.innerHeight;
+    // 별 생성
+    stars = [];
+    for (let i = 0; i < 120; i++) {
+      stars.push({
+        x: Math.random() * cv.width,
+        y: Math.random() * cv.height * 0.6,
+        r: Math.random() * 1.2 + 0.3,
+        a: Math.random(),
+        sp: Math.random() * 0.008 + 0.003,
+        off: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function spawnComet() {
+    comets.push({
+      x: Math.random() * cv.width * 0.7 + cv.width * 0.1,
+      y: Math.random() * cv.height * 0.3,
+      vx: Math.random() * 1.5 + 0.8,
+      vy: Math.random() * 1.2 + 0.5,
+      len: Math.random() * 120 + 80,
+      life: 1.0,
+      decay: Math.random() * 0.008 + 0.005
+    });
+  }
+
+  let t = 0;
+  let cometTimer = 0;
+
+  function draw() {
+    t += 0.01;
+    cometTimer++;
+
+    // 혜성 가끔 생성
+    if (cometTimer > 180 + Math.random() * 240) {
+      spawnComet();
+      cometTimer = 0;
+    }
+
+    // 하늘 그라데이션 (과제1 색상 참고)
+    let grad = ctx.createLinearGradient(0, 0, 0, cv.height);
+    grad.addColorStop(0.0,  '#120E37');
+    grad.addColorStop(0.25, '#231650');
+    grad.addColorStop(0.45, '#4B236E');
+    grad.addColorStop(0.65, '#823778');
+    grad.addColorStop(0.80, '#C3556E');
+    grad.addColorStop(0.92, '#E67350');
+    grad.addColorStop(1.0,  '#F59B3C');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // 노을 구름 레이어
+    ctx.save();
+    for (let i = 0; i < 4; i++) {
+      let cx = ((t * (18 + i * 7) + i * 300) % (cv.width + 300)) - 150;
+      let cy = cv.height * (0.55 + i * 0.06);
+      let alpha = 0.06 + i * 0.03;
+      ctx.fillStyle = `rgba(195,85,110,${alpha})`;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 180 + i * 40, 35 + i * 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(245,155,60,${alpha * 0.7})`;
+      ctx.beginPath();
+      ctx.ellipse(cx + 60, cy - 10, 110, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 별
+    for (let s of stars) {
+      let alpha = 0.4 + 0.5 * Math.sin(t * s.sp * 60 + s.off);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,230,${alpha * 0.85})`;
+      ctx.fill();
+    }
+
+    // 혜성
+    comets = comets.filter(c => c.life > 0);
+    for (let c of comets) {
+      let tailX = c.x - c.vx * c.len;
+      let tailY = c.y - c.vy * c.len;
+
+      // 꼬리
+      let g = ctx.createLinearGradient(tailX, tailY, c.x, c.y);
+      g.addColorStop(0, `rgba(140,220,255,0)`);
+      g.addColorStop(0.6, `rgba(140,220,255,${c.life * 0.25})`);
+      g.addColorStop(1, `rgba(220,245,255,${c.life * 0.7})`);
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(c.x, c.y);
+      ctx.stroke();
+
+      // 혜성 머리
+      let hg = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 8);
+      hg.addColorStop(0, `rgba(255,255,255,${c.life})`);
+      hg.addColorStop(0.4, `rgba(140,220,255,${c.life * 0.8})`);
+      hg.addColorStop(1, `rgba(140,220,255,0)`);
+      ctx.fillStyle = hg;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      c.x += c.vx;
+      c.y += c.vy;
+      c.life -= c.decay;
+    }
+
+    // 산 능선 (과제1 느낌)
+    ctx.fillStyle = '#190F32';
+    ctx.beginPath();
+    ctx.moveTo(0, cv.height);
+    ctx.bezierCurveTo(cv.width * 0.15, cv.height * 0.82, cv.width * 0.3, cv.height * 0.78, cv.width * 0.45, cv.height * 0.85);
+    ctx.bezierCurveTo(cv.width * 0.6, cv.height * 0.78, cv.width * 0.75, cv.height * 0.80, cv.width, cv.height * 0.83);
+    ctx.lineTo(cv.width, cv.height);
+    ctx.fill();
+
+    ctx.fillStyle = '#0F0A23';
+    ctx.beginPath();
+    ctx.moveTo(0, cv.height);
+    ctx.bezierCurveTo(cv.width * 0.2, cv.height * 0.88, cv.width * 0.4, cv.height * 0.84, cv.width * 0.55, cv.height * 0.9);
+    ctx.bezierCurveTo(cv.width * 0.7, cv.height * 0.86, cv.width * 0.85, cv.height * 0.88, cv.width, cv.height * 0.87);
+    ctx.lineTo(cv.width, cv.height);
+    ctx.fill();
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  spawnComet();
+  draw();
+</script>
+
+</body>
+</html>
+
     .dot.static  { background: var(--accent1); }
     .dot.dynamic { background: var(--accent2); }
 
